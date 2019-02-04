@@ -33,6 +33,11 @@ Usb_Frame_Ptr UsbDrv_CreateFrame (void)
 	  return NULL;
 	}
 
+    /* Initialize the usb_frame object */
+   _usb_frame->data      = NULL;
+   _usb_frame->frame_len = 0;
+   _usb_frame->channel   = 0;
+
 	return _usb_frame;
 }
 
