@@ -20,12 +20,7 @@
 
 #include "usbdrv_hal.h"
 
-#define HEADER_SIZE		0
-#define TRAILER_SIZE	2
-
-static const char * frame_header = NULL;
-/* Currently Unused */
-static const char * frame_trailer[2] = "\n\r";
+static const char * frame_trailer = "k\n\r";
 
 Usb_Frame_Ptr UsbDrv_CreateFrame (void)
 {
@@ -41,7 +36,17 @@ Usb_Frame_Ptr UsbDrv_CreateFrame (void)
 	return _usb_frame;
 }
 
-int UsbDrv_EncapsulateData(Usb_Frame_Ptr _usb_frame, int message_len, char * message, int channel)
+
+void UsbDrv_DestroyFrame (Usb_Frame_Ptr _usb_frame)
+{
+    if (_usb_frame != NULL)
+    	free(_usb_frame);
+
+	return;
+}
+
+int UsbDrv_EncapsulateData(Usb_Frame_Ptr  _usb_frame,
+						   char * message, int message_len, int channel)
 {
 	int ret = 0;
 	int frame_len = 0;
@@ -53,21 +58,21 @@ int UsbDrv_EncapsulateData(Usb_Frame_Ptr _usb_frame, int message_len, char * mes
 		  ret = -1;
 	}
 
-	frame_len = (TRAILER_SIZE + HEADER_SIZE + strlen(message));
-	_usb_frame->frame_len = frame_len + 2;
-
+	frame_len = (TRAILER_SIZE + strlen(message));
+	_usb_frame->frame_len = frame_len;
+    _usb_frame->channel = channel;
 	_usb_frame->data = (char *)malloc(sizeof(char) * frame_len);
 	if (_usb_frame->data == NULL)
 	{
 	  perror("Memory allocation has failed!");
-	  goto bail1;
-	  ret = -2;
+	  ret = -1;
+	  goto bail;
 	}
-	  _usb_frame->channel = DEFAULT_CHANNEL;
 
+    strcpy(_usb_frame->data, message);
+	strcat(_usb_frame->data, frame_trailer);
 
-bail1:
-
+bail:
 	return ret;
 }
 

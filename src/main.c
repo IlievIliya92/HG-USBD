@@ -66,27 +66,18 @@ static char blankImage[ 128 * 16 ];
 int main(void)
 {
   char const *currentImage, *nextImage;
-#if 0
-  Usb_Frame_Ptr usb_frame = NULL;
-
-  usb_frame = (Usb_Frame_Ptr)malloc(sizeof(Usb_Frame));
-  if (usb_frame == NULL)
-  {
-	  perror("Memory allocation has failed!");
-	  goto bail0;
-  }
-#endif
 
   Usb_Frame_Ptr usb_frame = NULL;
 
+  /* Create Usb_Frame */
   usb_frame = UsbDrv_CreateFrame();
 
-  usb_frame = UsbDrv_CreateFrame();
   /* Dynamic message_len */
   char *message = " HOI!";
   int message_len = strlen(message);
 
-  usb_frame->data_len = message_len + 2;
+#if 1
+  usb_frame->frame_len = message_len + 2;
   usb_frame->data = (char *)malloc(sizeof(char) * (message_len + 2));
   if (usb_frame->data == NULL)
   {
@@ -97,11 +88,11 @@ int main(void)
 
   strcpy(usb_frame->data, message);
   strcat(usb_frame->data, "\n\r");
-
+#endif
   /* Transfer message to the USB */
  // strcpy(usb_frame->data, message);
 //  strcat();
-
+ // UsbDrv_EncapsulateData(usb_frame, message, message_len, DEFAULT_CHANNEL);
   /* Chip errata */
   CHIP_Init();
 
