@@ -4,6 +4,8 @@
  *  Created on: Feb 3, 2019
  *      Author: Chicho ti Ilko
  */
+
+/******************************** Includes*****************************/
 #include <stdlib.h>
 #include <string.h>
 
@@ -20,9 +22,34 @@
 
 #include "usbdrv_hal.h"
 
-static const char * frame_trailer = "k\n\r";
+/********************************* Defines *****************************/
+/* Calculate a timeout in ms corresponding to 5 char times on current     */
+/* baudrate. Minimum timeout is set to 10 ms.                             */
+#define CDC_RX_TIMEOUT   ( 5 )
 
-Usb_Frame_Ptr UsbDrv_CreateFrame (void)
+#define BUFFERSIZE       ( 2 )
+EFM32_ALIGN(4);
+STATIC_UBUF( TransmitBuffer , BUFFERSIZE*257);
+
+static bool           usbTxActive = true;
+static uint32_t       LastUsbTxCnt = 0;
+
+static USB_Status_TypeDef status;
+static const char * frame_trailer = "\n\r";
+
+/**************************** Local Functions ************************/
+static int UsbDataTransmitted(USB_Status_TypeDef status,
+							  uint32_t xferred,
+							  uint32_t remaining);
+
+static int UsbDrv_EncapsulateData(Usb_Frame_Ptr _usb_frame,
+						   	   	  char * message, int message_len, int channel);
+
+static int UsbDrv_SendData(Usb_Frame_Ptr frame);
+static void UsbDrv_FreeData (Usb_Frame_Ptr _usb_frame);
+
+/**************************** Global Functions ************************/
+Usb_Frame_Ptr UsbDrv_CreateFrame(void)
 {
     Usb_Frame_Ptr _usb_frame = NULL;
 
@@ -41,7 +68,6 @@ Usb_Frame_Ptr UsbDrv_CreateFrame (void)
 	return _usb_frame;
 }
 
-
 void UsbDrv_DestroyFrame (Usb_Frame_Ptr _usb_frame)
 {
     if (_usb_frame != NULL)
@@ -50,8 +76,32 @@ void UsbDrv_DestroyFrame (Usb_Frame_Ptr _usb_frame)
 	return;
 }
 
-int UsbDrv_EncapsulateData(Usb_Frame_Ptr  _usb_frame,
-						   char * message, int message_len, int channel)
+int UsbDrv_Transmit(Usb_Frame_Ptr _usb_frame,
+					char * message, int message_len, int channel)
+{
+	int status = -1;
+
+	status = UsbDrv_EncapsulateData(_usb_frame, message, message_len, DEFAULT_CHANNEL);
+    if (0 != status)
+    {
+    	perror("Failed to encapsulate data!\n");
+    	goto bail;
+    }
+
+    status = UsbDrv_SendData(_usb_frame);
+    if (status != USB_STATUS_OK)
+    {
+    	perror("Failed to send data!\n");
+    }
+
+    UsbDrv_FreeData(_usb_frame);
+bail:
+    return status;
+}
+
+/**************************** Local Function ***************************/
+static int UsbDrv_EncapsulateData(Usb_Frame_Ptr _usb_frame,
+								  char * message, int message_len, int channel)
 {
 	int ret = 0;
 	int frame_len = 0;
@@ -81,16 +131,52 @@ bail:
 	return ret;
 }
 
-void UsbDrv_SendData(Usb_Frame_Ptr frame)
+/**************************** Local Function ***************************/
+static int UsbDrv_SendData(Usb_Frame_Ptr frame)
 {
-  INT_Disable();
+    memcpy(TransmitBuffer, frame->data, frame->frame_len);
+    free(frame->data);
 
-  /* usbTxActive = false means that a new USB packet can be transferred. */
-  //  usbTxActive = true;
-    USBD_Write(CDC_EP_DATA_IN, (void*) frame->data,
-               frame->frame_len, NULL);
+    INT_Disable();
 
-  INT_Enable();
+    if (usbTxActive)
+    {
+        status = USBD_Write(CDC_EP_DATA_IN, (void*) TransmitBuffer,
+                   frame->frame_len, UsbDataTransmitted);
+        LastUsbTxCnt = frame->frame_len;
+
+        USBTIMER_Start(0, 1, NULL);
+    }
+    else
+    {
+    	 usbTxActive = false;
+         USBTIMER_Stop(CDC_TIMER_ID);
+    }
+
+    INT_Enable();
+
+    return status;
 }
 
+/**************************** Local Function ***************************/
+static int UsbDataTransmitted(USB_Status_TypeDef status,
+							  uint32_t xferred,
+							  uint32_t remaining)
+{
+	if (LastUsbTxCnt != xferred) {
+		return USB_STATUS_EP_ERROR;
+	} else {
+		usbTxActive = true;
+	}
 
+	return USB_STATUS_OK;
+}
+
+/**************************** Local Function ***************************/
+static void UsbDrv_FreeData (Usb_Frame_Ptr _usb_frame)
+{
+	if (_usb_frame->data != NULL)
+		free(_usb_frame->data);
+
+	return;
+}

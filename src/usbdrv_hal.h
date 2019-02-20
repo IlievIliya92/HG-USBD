@@ -18,12 +18,10 @@ typedef struct usb_frame
    int channel;
 }Usb_Frame, *Usb_Frame_Ptr;
 
-void UsbDrv_SendData(Usb_Frame_Ptr frame);
-
 Usb_Frame_Ptr UsbDrv_CreateFrame (void);
 void UsbDrv_DestroyFrame (Usb_Frame_Ptr _usb_frame);
 
-int UsbDrv_EncapsulateData(Usb_Frame_Ptr _usb_frame,
-						   char * message, int message_len, int channel);
+int UsbDrv_Transmit(Usb_Frame_Ptr _usb_frame,
+					char * message, int message_len, int channel);
 
 #endif /* USBDRV_HAL_H_ */

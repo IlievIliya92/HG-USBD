@@ -1,18 +1,13 @@
-/**************************************************************************//**
+/*****************************************************************************
  * @file main.c
- * @brief USB CDC Serial Port adapter example project.
- * @version 4.4.0
+ * @brief USB CDC Serial Communicaction.
+ * @version 1.1.0
  ******************************************************************************
- * @section License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
- *******************************************************************************
- *
- * This file is licensed under the Silabs License Agreement. See the file
- * "Silabs_License_Agreement.txt" for details. Before using this software for
- * any purpose, you must agree to the terms of that agreement.
- *
  ******************************************************************************/
+
+/******************************** Includes*****************************/
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "em_device.h"
@@ -28,14 +23,14 @@
 
 #include "usbdrv_hal.h"
 
-/* Defines */
-#define DEFAULT_CHANNEL 	1
+/******************************* Defines *****************************/
+#define MESSAGE_QUE_LENGTH		3
 
-/* Local Functions */
+/**************************** Local Functions ************************/
 static void StateChange( USBD_State_TypeDef oldState,
                          USBD_State_TypeDef newState );
 
-/* Local Variables */
+/***************************** Local Variables ***********************/
 static const USBD_Callbacks_TypeDef callbacks =
 {
   .usbReset        = NULL,
@@ -65,34 +60,22 @@ static char blankImage[ 128 * 16 ];
  *****************************************************************************/
 int main(void)
 {
+  int message_len = 0;
   char const *currentImage, *nextImage;
-
-  Usb_Frame_Ptr usb_frame = NULL;
-
-  /* Create Usb_Frame */
-  usb_frame = UsbDrv_CreateFrame();
-
   /* Dynamic message_len */
-  char *message = " HOI!";
-  int message_len = strlen(message);
+  char *message[MESSAGE_QUE_LENGTH] = {"INIT USBD - Successful",
+		  	  	  	  	  	  	  	   "TEST Connection: Passed",
+  	  	  	  	  	  	  	  	  	   "-"};
+  Usb_Frame_Ptr usb_frame = NULL;
+  int i = 0;
 
-#if 1
-  usb_frame->frame_len = message_len + 2;
-  usb_frame->data = (char *)malloc(sizeof(char) * (message_len + 2));
-  if (usb_frame->data == NULL)
+  /* Create Usb_Frame Storage*/
+  usb_frame = UsbDrv_CreateFrame();
+  if (usb_frame == NULL)
   {
-	  perror("Memory allocation has failed!");
-	  goto bail1;
+	  goto bail0;
   }
-  usb_frame->channel = DEFAULT_CHANNEL;
 
-  strcpy(usb_frame->data, message);
-  strcat(usb_frame->data, "\n\r");
-#endif
-  /* Transfer message to the USB */
- // strcpy(usb_frame->data, message);
-//  strcat();
- // UsbDrv_EncapsulateData(usb_frame, message, message_len, DEFAULT_CHANNEL);
   /* Chip errata */
   CHIP_Init();
 
@@ -117,7 +100,7 @@ int main(void)
   scrollDisplay = scrollOff;
 
   /* Initialize the communication class device. */
-  CDC_Init();
+ // CDC_Init();
 
   /* Initialize and start USB device stack. */
   USBD_Init(&usbInitStruct);
@@ -126,15 +109,25 @@ int main(void)
    * When using a debugger it is practical to uncomment the following three
    * lines to force host to re-enumerate the device.
    */
-  /*USBD_Disconnect();         */
-  /*USBTIMER_DelayMs(1000);    */
-  /*USBD_Connect();            */
+  USBD_Disconnect();
+  USBTIMER_DelayMs(1000);
+  USBD_Connect();
 
   scrollLcd( &displayDevice, scrollLeft, blankImage, usbDisconnectedImage );
   currentImage = usbDisconnectedImage;
 
+  USBTIMER_DelayMs(1000);
+
+  /* Display Init Message */
+  for (i = 0; i < MESSAGE_QUE_LENGTH; i++)
+  {
+	  message_len = strlen(message[i]);
+  	  UsbDrv_Transmit(usb_frame, message[i], message_len, DEFAULT_CHANNEL);
+  }
+
   for (;;)
   {
+
     if ( scrollDisplay != scrollOff )
     {
       if (USBD_GetUsbState() == USBD_STATE_CONFIGURED)
@@ -150,14 +143,9 @@ int main(void)
       scrollDisplay = scrollOff;
       currentImage = nextImage;
     }
-
-    UsbDrv_SendData(usb_frame);
-
   }
 
-  free(usb_frame->data);
-bail1:
-  free(usb_frame);
+	UsbDrv_DestroyFrame(usb_frame);
 bail0:
   return 0;
 }
