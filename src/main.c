@@ -69,6 +69,19 @@ int main(void)
   Usb_Frame_Ptr usb_frame = NULL;
   int i = 0;
 
+  char *test;
+  test = (char *)malloc(sizeof(char) * 20);
+
+  char *hours;
+  hours = (char *)malloc(sizeof(char) * 2);
+
+  int num = 20;
+
+  memset(test, 0x00, 20);
+  strcat(test, "time: ");
+  sprintf( hours, "%d",num );
+  strcat(test, hours);
+
   /* Create Usb_Frame Storage*/
   usb_frame = UsbDrv_CreateFrame();
   if (usb_frame == NULL)
@@ -124,6 +137,9 @@ int main(void)
 	  message_len = strlen(message[i]);
   	  UsbDrv_Transmit(usb_frame, message[i], message_len, DEFAULT_CHANNEL);
   }
+
+  message_len = strlen(test);
+  UsbDrv_Transmit(usb_frame, test, message_len, DEFAULT_CHANNEL);
 
   for (;;)
   {
