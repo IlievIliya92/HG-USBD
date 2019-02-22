@@ -144,7 +144,7 @@ int main(void)
   UsbDrv_Transmit_Humidity(20, humidity, HUMIDITY_BUFF,
                            usb_frame, DEFAULT_CHANNEL);
 
-#if 1
+#if 0
   float temp_value = 20.12;
   UsbDrv_Transmit_Temp(temp_value, temp, TEMP_BUFF,
                       usb_frame , DEFAULT_CHANNEL);
