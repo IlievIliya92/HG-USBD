@@ -1,0 +1,4 @@
+*.bin
+../GNU ARM v4.8.3 - Debug/SLSTK3400A_usbdcdc.hex
+*.map
+*.o
