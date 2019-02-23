@@ -25,9 +25,16 @@
 /********************************* Defines *****************************/
 /* Calculate a timeout in ms corresponding to 5 char times on current     */
 /* baudrate. Minimum timeout is set to 10 ms.                             */
-#define CDC_RX_TIMEOUT   ( 5 )
+#define CDC_RX_TIMEOUT     5
+#define BUFFERSIZE         2
 
-#define BUFFERSIZE       ( 2 )
+#define TIME_UNITS              3
+#define CHARS_PER_TIME_UNIT     2
+#define DELIM                   ":"
+
+#define CHARS_HUMIDITY_UNIT     7
+#define CHARS_TEMP_UNIT         6
+
 EFM32_ALIGN(4);
 STATIC_UBUF( TransmitBuffer , BUFFERSIZE*257);
 
@@ -98,6 +105,49 @@ int UsbDrv_Transmit(Usb_Frame_Ptr _usb_frame,
 bail:
     return status;
 }
+
+int UsbDrv_Transmit_Time(int hours, int minutes, int seconds, char *time, int time_len,
+                         Usb_Frame_Ptr _usb_frame ,int channel)
+{
+    int status = 0;
+
+    memset(time, 0x00, time_len);
+    sprintf( time, "Time: %d:%d:%d", hours, minutes, seconds );
+
+    status = UsbDrv_Transmit(_usb_frame, time, time_len, channel);
+
+    return status;
+}
+
+int UsbDrv_Transmit_Humidity(int humidity_decimal_value, char *humidity, int humidity_len,
+                             Usb_Frame_Ptr _usb_frame ,int channel)
+{
+    int status = 0;
+
+    memset(humidity, 0x00, humidity_len);
+
+    sprintf(humidity , "Humidity: %d",  humidity_decimal_value);
+
+    status = UsbDrv_Transmit(_usb_frame, humidity, humidity_len, channel);
+
+    return status;
+}
+
+#if 0
+int UsbDrv_Transmit_Temp(float temp_float_value, char *temp, int temp_len,
+                         Usb_Frame_Ptr _usb_frame ,int channel)
+{
+    int status = 0;
+
+    memset(temp, 0x00, temp_len);
+
+    sprintf(temp, "Temp = %f °C", temp_float_value);
+
+    status = UsbDrv_Transmit(_usb_frame, temp, temp_len, channel);
+
+    return status;
+}
+#endif
 
 /**************************** Local Function ***************************/
 static int UsbDrv_EncapsulateData(Usb_Frame_Ptr _usb_frame,

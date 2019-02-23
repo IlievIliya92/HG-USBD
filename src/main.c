@@ -25,6 +25,9 @@
 
 /******************************* Defines *****************************/
 #define MESSAGE_QUE_LENGTH		3
+#define TIME_BUFF             20
+#define TEMP_BUFF             20
+#define HUMIDITY_BUFF         20
 
 /**************************** Local Functions ************************/
 static void StateChange( USBD_State_TypeDef oldState,
@@ -64,23 +67,18 @@ int main(void)
   char const *currentImage, *nextImage;
   /* Dynamic message_len */
   char *message[MESSAGE_QUE_LENGTH] = {"INIT USBD - Successful",
-		  	  	  	  	  	  	  	   "TEST Connection: Passed",
+		  	  	  	  	  	  	  	       "TEST Connection: Passed",
   	  	  	  	  	  	  	  	  	   "-"};
+  char time[TIME_BUFF];
+  char temp[TEMP_BUFF];
+  char humidity[HUMIDITY_BUFF];
+
+  memset(time, 0x00, TIME_BUFF);
+  memset(temp, 0x00, TEMP_BUFF);
+  memset(humidity, 0x00, HUMIDITY_BUFF);
+
   Usb_Frame_Ptr usb_frame = NULL;
   int i = 0;
-
-  char *test;
-  test = (char *)malloc(sizeof(char) * 20);
-
-  char *hours;
-  hours = (char *)malloc(sizeof(char) * 2);
-
-  int num = 20;
-
-  memset(test, 0x00, 20);
-  strcat(test, "time: ");
-  sprintf( hours, "%d",num );
-  strcat(test, hours);
 
   /* Create Usb_Frame Storage*/
   usb_frame = UsbDrv_CreateFrame();
@@ -138,9 +136,17 @@ int main(void)
   	  UsbDrv_Transmit(usb_frame, message[i], message_len, DEFAULT_CHANNEL);
   }
 
-  message_len = strlen(test);
-  UsbDrv_Transmit(usb_frame, test, message_len, DEFAULT_CHANNEL);
+  UsbDrv_Transmit_Time(20, 20, 10, time, TIME_BUFF,
+                       usb_frame , DEFAULT_CHANNEL);
 
+  UsbDrv_Transmit_Humidity(20, humidity, HUMIDITY_BUFF,
+                           usb_frame, DEFAULT_CHANNEL);
+
+#if 0
+  float temp_value = 20.12;
+  UsbDrv_Transmit_Temp(temp_value, temp, TEMP_BUFF,
+                      usb_frame , DEFAULT_CHANNEL);
+#endif
   for (;;)
   {
 

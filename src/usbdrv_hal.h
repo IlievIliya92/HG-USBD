@@ -24,4 +24,15 @@ void UsbDrv_DestroyFrame (Usb_Frame_Ptr _usb_frame);
 int UsbDrv_Transmit(Usb_Frame_Ptr _usb_frame,
 					char * message, int message_len, int channel);
 
+int UsbDrv_Transmit_Time(int hours, int minutes, int seconds, char *time, int time_len,
+                         Usb_Frame_Ptr _usb_frame ,int channel);
+
+int UsbDrv_Transmit_Humidity(int humidity_decimal_value, char *humidity, int humidity_len,
+                             Usb_Frame_Ptr _usb_frame ,int channel);
+
+#if 0
+int UsbDrv_Transmit_Temp(float temp_float_value, char *temp, int temp_len,
+                         Usb_Frame_Ptr _usb_frame ,int channel);
+#endif
+
 #endif /* USBDRV_HAL_H_ */
