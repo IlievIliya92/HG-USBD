@@ -21,6 +21,7 @@
 #include "cdc.h"
 
 #include "usbdrv_hal.h"
+#include "usbdrv_format.h"
 
 /********************************* Defines *****************************/
 /* Calculate a timeout in ms corresponding to 5 char times on current     */
@@ -113,41 +114,25 @@ int UsbDrv_Transmit_Time(int hours, int minutes, int seconds, char *time, int ti
 
     memset(time, 0x00, time_len);
     sprintf( time, "Time: %d:%d:%d", hours, minutes, seconds );
-
     status = UsbDrv_Transmit(_usb_frame, time, time_len, channel);
 
     return status;
 }
 
-int UsbDrv_Transmit_Humidity(int humidity_decimal_value, char *humidity, int humidity_len,
+int UsbDrv_Transmit_Humidity(float humidity,
                              Usb_Frame_Ptr _usb_frame ,int channel)
 {
     int status = 0;
+    char humidity_str[20];
+    int humidity_len = 20;
 
-    memset(humidity, 0x00, humidity_len);
+    memset(humidity_str, 0x00, humidity_len);
+    Ubdrv_Ftoa(humidity, humidity_str, 2);
 
-    sprintf(humidity , "Humidity: %d",  humidity_decimal_value);
-
-    status = UsbDrv_Transmit(_usb_frame, humidity, humidity_len, channel);
-
-    return status;
-}
-
-#if 0
-int UsbDrv_Transmit_Temp(float temp_float_value, char *temp, int temp_len,
-                         Usb_Frame_Ptr _usb_frame ,int channel)
-{
-    int status = 0;
-
-    memset(temp, 0x00, temp_len);
-
-    sprintf(temp, "Temp = %f °C", temp_float_value);
-
-    status = UsbDrv_Transmit(_usb_frame, temp, temp_len, channel);
+    status = UsbDrv_Transmit(_usb_frame, humidity_str, humidity_len, channel);
 
     return status;
 }
-#endif
 
 /**************************** Local Function ***************************/
 static int UsbDrv_EncapsulateData(Usb_Frame_Ptr _usb_frame,

@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include "em_device.h"
 #include "em_chip.h"
@@ -26,8 +27,6 @@
 /******************************* Defines *****************************/
 #define MESSAGE_QUE_LENGTH		3
 #define TIME_BUFF             20
-#define TEMP_BUFF             20
-#define HUMIDITY_BUFF         20
 
 /**************************** Local Functions ************************/
 static void StateChange( USBD_State_TypeDef oldState,
@@ -70,12 +69,8 @@ int main(void)
 		  	  	  	  	  	  	  	       "TEST Connection: Passed",
   	  	  	  	  	  	  	  	  	   "-"};
   char time[TIME_BUFF];
-  char temp[TEMP_BUFF];
-  char humidity[HUMIDITY_BUFF];
 
   memset(time, 0x00, TIME_BUFF);
-  memset(temp, 0x00, TEMP_BUFF);
-  memset(humidity, 0x00, HUMIDITY_BUFF);
 
   Usb_Frame_Ptr usb_frame = NULL;
   int i = 0;
@@ -91,7 +86,6 @@ int main(void)
   CHIP_Init();
 
   CMU_ClockSelectSet( cmuClock_HF, cmuSelect_HFXO );
-
   /* Initialize the display module. */
   DISPLAY_Init();
 
@@ -111,7 +105,7 @@ int main(void)
   scrollDisplay = scrollOff;
 
   /* Initialize the communication class device. */
- // CDC_Init();
+  CDC_Init();
 
   /* Initialize and start USB device stack. */
   USBD_Init(&usbInitStruct);
@@ -139,17 +133,11 @@ int main(void)
   UsbDrv_Transmit_Time(20, 20, 10, time, TIME_BUFF,
                        usb_frame , DEFAULT_CHANNEL);
 
-  UsbDrv_Transmit_Humidity(20, humidity, HUMIDITY_BUFF,
-                           usb_frame, DEFAULT_CHANNEL);
+  UsbDrv_Transmit_Humidity(20.123, usb_frame, DEFAULT_CHANNEL);
 
-#if 0
-  float temp_value = 20.12;
-  UsbDrv_Transmit_Temp(temp_value, temp, TEMP_BUFF,
-                      usb_frame , DEFAULT_CHANNEL);
-#endif
-  for (;;)
-  {
 
+ for (;;)
+ {
     if ( scrollDisplay != scrollOff )
     {
       if (USBD_GetUsbState() == USBD_STATE_CONFIGURED)
