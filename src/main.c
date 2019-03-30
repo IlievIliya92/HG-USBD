@@ -26,7 +26,6 @@
 
 /******************************* Defines *****************************/
 #define MESSAGE_QUE_LENGTH		3
-#define TIME_BUFF             20
 
 /**************************** Local Functions ************************/
 static void StateChange( USBD_State_TypeDef oldState,
@@ -68,10 +67,6 @@ int main(void)
   char *message[MESSAGE_QUE_LENGTH] = {"INIT USBD - Successful",
 		  	  	  	  	  	  	  	       "TEST Connection: Passed",
   	  	  	  	  	  	  	  	  	   "-"};
-  char time[TIME_BUFF];
-
-  memset(time, 0x00, TIME_BUFF);
-
   Usb_Frame_Ptr usb_frame = NULL;
   int i = 0;
 
@@ -127,17 +122,17 @@ int main(void)
   for (i = 0; i < MESSAGE_QUE_LENGTH; i++)
   {
 	  message_len = strlen(message[i]);
-  	  UsbDrv_Transmit(usb_frame, message[i], message_len, DEFAULT_CHANNEL);
+  	UsbDrv_Transmit(usb_frame, message[i], message_len, DEFAULT_CHANNEL);
   }
-
-  UsbDrv_Transmit_Time(20, 20, 10, time, TIME_BUFF,
-                       usb_frame , DEFAULT_CHANNEL);
-
-  UsbDrv_Transmit_Humidity(20.123, usb_frame, DEFAULT_CHANNEL);
-
 
  for (;;)
  {
+    /* Add some delay between the prints */
+    for (i = 0; i < 10000000; i++){
+   	  ;
+    }
+    UsbDrv_Transmit_Output_Data(19, 04, 01, 21, 20, 45, 20.20, 21.21, usb_frame, DEFAULT_CHANNEL);
+
     if ( scrollDisplay != scrollOff )
     {
       if (USBD_GetUsbState() == USBD_STATE_CONFIGURED)

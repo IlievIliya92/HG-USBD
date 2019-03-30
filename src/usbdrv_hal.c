@@ -33,15 +33,17 @@
 #define CHARS_PER_TIME_UNIT     2
 #define DELIM                   ":"
 
-#define CHARS_HUMIDITY_UNIT     7
-#define CHARS_TEMP_UNIT         6
+#define OUTPUT_DATA_SIZE      100
+#define TIME_BUFF             20
+#define HUMIDITY_BUFF         20
+#define HUMIDITY_BUFF_F_P     4
 
+/********************************* Global Variables *****************************/
 EFM32_ALIGN(4);
 STATIC_UBUF( TransmitBuffer , BUFFERSIZE*257);
 
 static bool           usbTxActive = true;
 static uint32_t       LastUsbTxCnt = 0;
-
 static USB_Status_TypeDef status;
 static const char * frame_trailer = "\n\r";
 
@@ -56,7 +58,26 @@ static int UsbDrv_EncapsulateData(Usb_Frame_Ptr _usb_frame,
 static int UsbDrv_SendData(Usb_Frame_Ptr frame);
 static void UsbDrv_FreeData (Usb_Frame_Ptr _usb_frame);
 
+
 /**************************** Global Functions ************************/
+int UsbDrv_Transmit_Output_Data(int year, int month, int day,
+                                int hour, int minute, int second,
+                                float temp, float humidity,
+                                Usb_Frame_Ptr _usb_frame, int channel)
+{
+    Out_Data output_data = {0};
+    char * formated_output_data = NULL;
+
+    output_data = UsbDrv_Format_PackData(year, month, day,
+                                         hour, minute, second,
+                                         temp, humidity);
+
+    formated_output_data = UsbDrv_Format_FormatOutputData(output_data);
+
+    status = UsbDrv_Transmit(_usb_frame, formated_output_data, OUTPUT_DATA_SIZE, channel);
+    return status;
+}
+
 Usb_Frame_Ptr UsbDrv_CreateFrame(void)
 {
     Usb_Frame_Ptr _usb_frame = NULL;
@@ -104,33 +125,6 @@ int UsbDrv_Transmit(Usb_Frame_Ptr _usb_frame,
 
     UsbDrv_FreeData(_usb_frame);
 bail:
-    return status;
-}
-
-int UsbDrv_Transmit_Time(int hours, int minutes, int seconds, char *time, int time_len,
-                         Usb_Frame_Ptr _usb_frame ,int channel)
-{
-    int status = 0;
-
-    memset(time, 0x00, time_len);
-    sprintf( time, "Time: %d:%d:%d", hours, minutes, seconds );
-    status = UsbDrv_Transmit(_usb_frame, time, time_len, channel);
-
-    return status;
-}
-
-int UsbDrv_Transmit_Humidity(float humidity,
-                             Usb_Frame_Ptr _usb_frame ,int channel)
-{
-    int status = 0;
-    char humidity_str[20];
-    int humidity_len = 20;
-
-    memset(humidity_str, 0x00, humidity_len);
-    Ubdrv_Ftoa(humidity, humidity_str, 2);
-
-    status = UsbDrv_Transmit(_usb_frame, humidity_str, humidity_len, channel);
-
     return status;
 }
 

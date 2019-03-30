@@ -18,15 +18,15 @@ typedef struct usb_frame
    int channel;
 }Usb_Frame, *Usb_Frame_Ptr;
 
-Usb_Frame_Ptr UsbDrv_CreateFrame (void);
-void UsbDrv_DestroyFrame (Usb_Frame_Ptr _usb_frame);
+int UsbDrv_Transmit_Output_Data(int year, int month, int day,
+                                int hour, int minute, int second,
+                                float temp, float humidity,
+                                Usb_Frame_Ptr _usb_frame, int channel);
 
 int UsbDrv_Transmit(Usb_Frame_Ptr _usb_frame,
 					char * message, int message_len, int channel);
 
-int UsbDrv_Transmit_Time(int hours, int minutes, int seconds, char *time, int time_len,
-                         Usb_Frame_Ptr _usb_frame ,int channel);
-
-int UsbDrv_Transmit_Humidity(float humidity, Usb_Frame_Ptr _usb_frame ,int channel);
+Usb_Frame_Ptr UsbDrv_CreateFrame (void);
+void UsbDrv_DestroyFrame (Usb_Frame_Ptr _usb_frame);
 
 #endif /* USBDRV_HAL_H_ */
