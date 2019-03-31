@@ -1,25 +1,3 @@
-"""This is a simple application written in Python and TKinter.
-
-The application's main purpose is not to serve a specific one. This is a generic application
-for sending and receiving data from the computer to UART host controller (Arduino).
-
-The major functions are self update and get data which are threaded to make sure the GUI does not freeze.
-The GUI runs in the main thread, the worker threads are the two separate ones.
-
-A simple Arduino Test Sketch is also made to test the purpose of this app which sends data in a specific
-format.
-
-Format:
-    String outgoing_data = {"1,2,3,4,5"};
-
-The array size has been limited to 5 since the UNO has 5 analogue Sources and the progress bars
-represent the 5 bars.
-
-@author: Prateek guru <pratik.gurudatt@gmail.com>
-
-"""
-
-
 import time
 import threading
 import Tkinter
