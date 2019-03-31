@@ -123,7 +123,6 @@ int UsbDrv_Transmit(Usb_Frame_Ptr _usb_frame,
     	perror("Failed to send data!\n");
     }
 
-    UsbDrv_FreeData(_usb_frame);
 bail:
     return status;
 }
@@ -152,7 +151,7 @@ static int UsbDrv_EncapsulateData(Usb_Frame_Ptr _usb_frame,
 	  ret = -1;
 	  goto bail;
 	}
-
+    memset(_usb_frame->data, 0x00, frame_len);
     strcpy(_usb_frame->data, message);
 	strcat(_usb_frame->data, frame_trailer);
 
@@ -164,7 +163,7 @@ bail:
 static int UsbDrv_SendData(Usb_Frame_Ptr frame)
 {
     memcpy(TransmitBuffer, frame->data, frame->frame_len);
-    free(frame->data);
+    UsbDrv_FreeData(frame);
 
     INT_Disable();
 

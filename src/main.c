@@ -25,7 +25,7 @@
 #include "usbdrv_hal.h"
 
 /******************************* Defines *****************************/
-#define MESSAGE_QUE_LENGTH		3
+#define MESSAGE_QUE_LENGTH		4
 
 /**************************** Local Functions ************************/
 static void StateChange( USBD_State_TypeDef oldState,
@@ -61,14 +61,19 @@ static char blankImage[ 128 * 16 ];
  *****************************************************************************/
 int main(void)
 {
+  bool output_enable = false;
   int message_len = 0;
   char const *currentImage, *nextImage;
   /* Dynamic message_len */
   char *message[MESSAGE_QUE_LENGTH] = {"INIT USBD - Successful",
 		  	  	  	  	  	  	  	       "TEST Connection: Passed",
-  	  	  	  	  	  	  	  	  	   "-"};
+  	  	  	  	  	  	  	  	  	   "-",
+                                       " DATE | TIME  | TEMP | HUMIDITY"};
   Usb_Frame_Ptr usb_frame = NULL;
   int i = 0;
+
+  // Test data
+  float temp = 0.0;
 
   /* Create Usb_Frame Storage*/
   usb_frame = UsbDrv_CreateFrame();
@@ -127,20 +132,32 @@ int main(void)
 
  for (;;)
  {
-    /* Add some delay between the prints */
-    for (i = 0; i < 10000000; i++){
-   	  ;
+    temp += 1.0;
+    if (temp > 12.5)
+    {
+      temp = 0;
     }
-    UsbDrv_Transmit_Output_Data(19, 04, 01, 21, 20, 45, 20.20, 21.21, usb_frame, DEFAULT_CHANNEL);
+
+    if (output_enable)
+    {
+      /* Add some delay between the prints */
+      for (i = 0; i < 10000000; i++)
+      {
+        ;
+      }
+      UsbDrv_Transmit_Output_Data(19, 4, 1, 21, 20, 45, temp, 21.21, usb_frame, DEFAULT_CHANNEL);
+    }
 
     if ( scrollDisplay != scrollOff )
     {
       if (USBD_GetUsbState() == USBD_STATE_CONFIGURED)
       {
+        output_enable = true;
         nextImage = usbConnectedImage;
       }
       else
       {
+        output_enable = false;
         nextImage = usbDisconnectedImage;
       }
 

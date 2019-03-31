@@ -5,6 +5,7 @@
 #include "usbdrv_format.h"
 
 /********************************* Defines *****************************/
+#define DATE_BUFF             10
 #define TIME_BUFF             10
 #define HUMIDITY_BUFF         6
 #define HUMIDITY_BUFF_F_P     2
@@ -25,21 +26,21 @@ static void Usbdrv_Format_Ftoa(float n, char *res, int afterpoint);
  */
 char * UsbDrv_Format_FormatOutputData(Out_Data output_data)
 {
+    char date[DATE_BUFF];
     char time[TIME_BUFF];
-    char time_year[TIME_BUFF];
     char humidity_str[HUMIDITY_BUFF];
     char temp_str[HUMIDITY_BUFF];
 
+    memset(date, 0x00, DATE_BUFF);
     memset(time, 0x00, TIME_BUFF);
-    memset(time_year, 0x00, TIME_BUFF);
     memset(humidity_str, 0x00, HUMIDITY_BUFF);
     memset(temp_str, 0x00, TEMP_BUFF);
 
     memset(formated_output_data, 0x00, 100);
 
     /* Add time to the output */
-    sprintf(time_year, "%d:%d:%d,", output_data.year, output_data.month, output_data.day);
-    strcat(formated_output_data, time_year);
+    sprintf(date, "%d:%d:%d,", output_data.year, output_data.month, output_data.day);
+    strcat(formated_output_data, date);
 
     /* Add time to the output */
     sprintf(time, "%d:%d:%d,", output_data.hour, output_data.minute, output_data.second);
