@@ -99,17 +99,17 @@ def update_gui():
 
     while(1):
         if filter_data:
-
+#['2019', '06', '01', '00', '18', '03', '22.00', '41.74']
             text.insert(END, filter_data)
             text.insert(END,"\n")
             try:
                 #progress_1["value"] = filter_data[0]
-                date.insert(INSERT, filter_data[0] + "\n")
-                timed.insert(INSERT, filter_data[1] + "\n")
-                progress_temp["value"] = filter_data[2]
-                temp.insert(INSERT, filter_data[2] + "\n")
-                progress_humidity["value"] = filter_data[3]
-                humidty.insert(INSERT, filter_data[3] + "\n")
+                date.insert(INSERT, filter_data[0] + ":" + filter_data[1] + ":" + filter_data[2] + "\n")
+                timed.insert(INSERT, filter_data[3] + ":" + filter_data[4] + ":" + filter_data[5] + "\n")
+                progress_temp["value"] = filter_data[6]
+                temp.insert(INSERT, filter_data[6] + "\n")
+                progress_humidity["value"] = filter_data[7]
+                humidty.insert(INSERT, filter_data[7] + "\n")
             except :
                 pass
 
@@ -156,7 +156,7 @@ if __name__ == "__main__":
     #frames
     frame_1 = Frame(height = 285, width = 480, bd = 3, relief = 'groove').place(x = 7, y = 5)
     frame_2 = Frame(height = 150, width = 480, bd = 3, relief = 'groove').place(x = 7, y = 300)
-    text = Text(width = 50, height = 5)
+    text = Text(width = 57, height = 5)
 
 
     #threads
@@ -176,8 +176,8 @@ if __name__ == "__main__":
     contact = Label(text = "HG WeatherStation").place(x = 250, y = 437)
 
     #progress_bars
-    date = Text(width = 8, height = 1)
-    timed = Text(width = 8, height = 1)
+    date = Text(width = 12, height = 1)
+    timed = Text(width = 12, height = 1)
     progress_temp = ttk.Progressbar(orient = HORIZONTAL, mode = 'determinate', length = 200, max = 255)
     temp = Text(width = 8, height = 1)
     #progress_1 = ttk.Progressbar(orient = HORIZONTAL, mode = 'determinate', length = 200, max = 255)
